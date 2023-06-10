@@ -1,4 +1,12 @@
-# cik-cusip mapping
+# cik_cusip_mapping
+
+Forked from [leoliu0/cik-cusip-mapping](https://github.com/leoliu0/cik-cusip-mapping)
+
+MIT License
+Reeyarn Li 2023
+
+
+## Originally Stated Purpose by [leoliu0/cik-cusip-mapping](https://github.com/leoliu0/cik-cusip-mapping)
 
 *** If you just want the mapping, download cik-cusip-maps.csv ***
 
@@ -14,19 +22,22 @@ python dl_idx.py
 
 ## Forked by Reeyarn Li:
 
+Assume that an issuer does not change its Issuer Number (first 6 chars of CUSIP) when the issuer's name does not change, 
+one does not need to download every 13D and 13G filings. Just download those at the first and last date with cik x company-name pair.
+
 `python3 build_cik_cusip_link.py`
 
-This code replaces parse_cusip_html.py by merging dl.py download function and parse_cusip_html function.
-In addition, you don't need to download all 13D 13G filings. Just those at the first and last date with cik x company-name pair,
-assuming CUSIP-6 Issuer Number remain unchanged until company name change.
+This code replaces `parse_cusip_html.py` by merging `dl.py` download function and `parse_cusip_html.py` function.
+In addition, it runs `pd.groupby(["cik", "comnam"])` to get the min and max filing `date` for each cik x company-name pair, 
+and obtain the CUSIP6 for the first and last 13D/G filing during the window.
 
-MIT License
 
-Reeyarn Li 2023
 
 ### TODO PLAN: 
    The output csv from leoliu0/cik-cusip-mapping assumes that cik--cusip link does not change overtime. This is not the case. 
    Need to build cik--name--cusip6---begdate--enddate structure, to be merged with Compustat/CRSP with CUSIP6 and date range.
+
+The other files are not touched for now.
 
 ## Original Functions from  leoliu0/cik-cusip-mapping
 
