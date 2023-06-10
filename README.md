@@ -12,6 +12,24 @@ dl_idx.py will download the EDGAR index file containing addresses for each filin
 python dl_idx.py
 ```
 
+## Forked by Reeyarn Li:
+
+`python3 build_cik_cusip_link.py`
+
+This code replaces parse_cusip_html.py by merging dl.py download function and parse_cusip_html function.
+In addition, you don't need to download all 13D 13G filings. Just those at the first and last date with cik x company-name pair,
+assuming CUSIP-6 Issuer Number remain unchanged until company name change.
+
+MIT License
+
+Reeyarn Li 2023
+
+### TODO PLAN: 
+   The output csv from leoliu0/cik-cusip-mapping assumes that cik--cusip link does not change overtime. This is not the case. 
+   Need to build cik--name--cusip6---begdate--enddate structure, to be merged with Compustat/CRSP with CUSIP6 and date range.
+
+## Original Functions from  leoliu0/cik-cusip-mapping
+
 dl.py will download a certain type of filing, check form_type.txt for available filing types. for example,
 ```python
 python dl.py 13G 13G # this will download all 13G (second 13G) filing into 13G (first 13G) folder
