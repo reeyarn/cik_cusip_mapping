@@ -208,23 +208,40 @@ def get_cusip(url):
   
 
 if __name__=="__main__":  
-
     index = pd.read_csv(os.path.expanduser("./full_index.csv"))
-
-    index = index.loc[ (index.form.str.contains("13D")) | (index.form.str.contains("13G"))  ].reset_index()
-    index["date"] =  pd.to_datetime( index["date"])
-
-    index["strdate"] = index.groupby(["cik", "comnam"]).date.transform("min")
-    index["enddate"] = index.groupby(["cik", "comnam"]).date.transform("max")
     
-    subset = index.loc[(index.date ==index.strdate) | (index.date==index.enddate)].reset_index(drop=True)
+    bigset = index.loc[ (index.form.str.contains("13D")) | (index.form.str.contains("13G"))| (index.form.str.contains("10-K"))  ].reset_index()
+    bigset["date"] =  pd.to_datetime( bigset["date"])
+    
+    bigset["strdate"] = bigset.groupby(["cik", "comnam"]).date.transform("min")
+    bigset["enddate"] = bigset.groupby(["cik", "comnam"]).date.transform("max")
+    
+    bigset = bigset.loc[(bigset.date ==bigset.strdate) | (bigset.date==bigset.enddate)].reset_index(drop=True)
+
+    
+    subset = index.loc[ (index.form.str.contains("13D")) | (index.form.str.contains("13G"))| (index.form.str.contains("10-K"))  ].reset_index()
+    subset["date"] =  pd.to_datetime( subset["date"])
+    
+    subset["strdate"] = subset.groupby(["cik", "comnam"]).date.transform("min")
+    subset["enddate"] = subset.groupby(["cik", "comnam"]).date.transform("max")
+    
+    subset = subset.loc[(subset.date ==subset.strdate) | (subset.date==subset.enddate)].reset_index(drop=True)
+
     
     subset["cusip"] = subset.url.mapply(get_cusip)
     subset["cusip6"] = subset["cusip"].str[:6]
-    subset.to_csv("cik_cusips.csv", index=False, sep="|")
+    
+    extendset = pd.merge(bigset, subset, on=["cik", "comnam"], how="left", suffixes=('_bigset', '_subset'))
+
+    extendset["strdate"] = extendset.groupby(["cik", "comnam", "cusip6"]).strdate_bigset.transform("min")
+    extendset["enddate"] = extendset.groupby(["cik", "comnam", "cusip6"]).enddate_bigset.transform("max")
 
     
-if False:
+    finalset = extendset.drop_duplicates(subset=["cik", "comnam", "cusip6"])
+    
+    finalset.to_csv("cik_cusips.csv", index=False, sep="|")
+    
+if False: # the expected outputs:
     subset.loc[subset.cik==772263,["cik", "comnam", "cusip6"]]
     """
            cik                comnam  cusip6
@@ -232,5 +249,12 @@ if False:
 3788    772263  BEEBAS CREATIONS INC  076590
 31022   772263           NITCHES INC  65476M
 103963  772263           NITCHES INC  65476M
+    """
+    
+    finalset.loc[finalset.cik==772263, ["cik", "comnam", "cusip6", "strdate_subset", "enddate_subset", "strdate", "enddate"]]
+    """
+          cik                comnam  cusip6 strdate_subset enddate_subset    strdate    enddate
+24310  772263  BEEBAS CREATIONS INC  076590     1994-04-08     1994-06-10 1994-04-08 1995-11-03
+72845  772263           NITCHES INC  65476M     1998-02-10     2007-01-10 1996-11-20 2008-11-26
     """
   
