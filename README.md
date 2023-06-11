@@ -33,9 +33,17 @@ and obtain the CUSIP6 for the first and last 13D/G filing during the window.
 
 
 
-### TODO PLAN: 
-   The output csv from leoliu0/cik-cusip-mapping assumes that cik--cusip link does not change overtime. This is not the case. 
-   Need to build cik--name--cusip6---begdate--enddate structure, to be merged with Compustat/CRSP with CUSIP6 and date range.
+The output csv from leoliu0/cik-cusip-mapping assumes that cik--cusip link does not change overtime. See his explanation below. 
+But in my case, I need to build cik--name--cusip6---begdate--enddate structure, to be merged with Compustat/CRSP with CUSIP6 and date range.
+For this purpose, my output looks like the following:
+
+`finalset.loc[finalset.cik==772263, ["cik", "comnam", "cusip6", "strdate_subset", "enddate_subset", "strdate", "enddate"]]`
+
+```"""
+          cik                comnam  cusip6 strdate_subset enddate_subset    strdate    enddate
+24310  772263  BEEBAS CREATIONS INC  076590     1994-04-08     1994-06-10 1994-04-08 1995-11-03
+72845  772263           NITCHES INC  65476M     1998-02-10     2007-01-10 1996-11-20 2008-11-26
+"""```
 
 The other files are not touched for now.
 
