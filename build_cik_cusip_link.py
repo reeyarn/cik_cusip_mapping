@@ -231,13 +231,42 @@ if __name__=="__main__":
     subset["cusip"] = subset.url.mapply(get_cusip)
     subset["cusip6"] = subset["cusip"].str[:6]
     
-    extendset = pd.merge(bigset, subset, on=["cik", "comnam"], how="left", suffixes=('_bigset', '_subset'))
-
+    extendset = pd.merge(bigset[["cik", "comnam", "strdate", "enddate"]], subset[["cik", "comnam", "strdate", "enddate", "cusip", "cusip6"]], on=["cik", "comnam"], how="left", suffixes=('_bigset', '_subset'))
+    
     extendset["strdate"] = extendset.groupby(["cik", "comnam", "cusip6"]).strdate_bigset.transform("min")
     extendset["enddate"] = extendset.groupby(["cik", "comnam", "cusip6"]).enddate_bigset.transform("max")
 
     
-    finalset = extendset.drop_duplicates(subset=["cik", "comnam", "cusip6"])
+    extendset = extendset.drop_duplicates(subset=["cik", "comnam", "cusip6"])
+    #162992
+    
+    #extendset.drop_duplicates(subset=["cik", "comnam"])    #122629
+    #It means for each cik -- comnam, there are more than one cusip6 found. 
+    #Can only be resolved after merging with another data source, such as comp.funda
+    #then try to compare company name
+    
+    extendset["n_cusips"] = extendset.groupby(["cik", "comnam"]).cusip.transform("count")
+    extendset.loc[extendset.n_cusips>1]
+
+
+    #For each CIK, how many form 10-Ks are filed during the window?
+    tenkset = index.loc[ (index.form.str.contains("10-K"))  ].reset_index()
+    tenkset["date"] =  pd.to_datetime( tenkset["date"])
+    
+    tenkset["strdate"] = tenkset.groupby(["cik", "comnam"]).date.transform("min")
+    tenkset["enddate"] = tenkset.groupby(["cik", "comnam"]).date.transform("max")
+    
+    tenkset["num10ks"] = tenkset.groupby(["cik", "comnam"]).url.transform("count")
+    
+    tenkset = tenkset.loc[(tenkset.date ==tenkset.strdate) | (tenkset.date==tenkset.enddate)].reset_index(drop=True)
+
+    extendset1 = pd.merge(extendset, tenkset[["cik", "comnam", "num10ks"]], on=["cik", "comnam"], how="left")
+    #212_648
+    extendset1.num10ks.fillna(0, inplace=True)
+    
+    extendset2 = extendset1.loc[extendset1.groupby(["cik", "comnam"]).num10ks.idxmax()]
+    
+    finalset = extendset2.reset_index(drop=True)
     
     finalset.to_csv("cik_cusips.csv", index=False, sep="|")
     
@@ -251,10 +280,11 @@ if False: # the expected outputs:
 103963  772263           NITCHES INC  65476M
     """
     
-    finalset.loc[finalset.cik==772263, ["cik", "comnam", "cusip6", "strdate_subset", "enddate_subset", "strdate", "enddate"]]
+    finalset.loc[finalset.cik==772263]
     """
-          cik                comnam  cusip6 strdate_subset enddate_subset    strdate    enddate
-24310  772263  BEEBAS CREATIONS INC  076590     1994-04-08     1994-06-10 1994-04-08 1995-11-03
-72845  772263           NITCHES INC  65476M     1998-02-10     2007-01-10 1996-11-20 2008-11-26
+         cik                comnam strdate_bigset enddate_bigset strdate_subset enddate_subset      cusip  cusip6    strdate    enddate  n_cusips  num10ks
+8356  772263  BEEBAS CREATIONS INC     1994-04-08     1995-11-03     1994-04-08     1994-06-10  076590108  076590 1994-04-08 1995-11-03         1      1.0
+8357  772263           NITCHES INC     1996-11-20     2008-11-26     1998-02-10     2007-01-10  65476M109  65476M 1996-11-20 2008-11-26         1     27.0
     """
+    
   
