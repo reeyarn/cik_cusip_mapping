@@ -20,7 +20,7 @@ dl_idx.py will download the EDGAR index file containing addresses for each filin
 python dl_idx.py
 ```
 
-## Forked by Reeyarn Li:
+## Forked Part:
 
 Assume that an issuer does not change its Issuer Number (first 6 chars of CUSIP) when the issuer's name does not change, 
 one does not need to download every 13D and 13G filings. Just download those at the first and last date with cik x company-name pair.
@@ -33,18 +33,16 @@ and obtain the CUSIP6 for the first and last 13D/G filing during the window.
 
 
 
-The output csv from leoliu0/cik-cusip-mapping assumes that cik--cusip link does not change overtime. See his explanation below. 
+The output csv from leoliu0/cik-cusip-mapping assumes that cik--cusip link does not change overtime. See his explanation below, in "Reason for not having a timestamp". 
 But in my case, I need to build cik--name--cusip6---begdate--enddate structure, to be merged with Compustat/CRSP with CUSIP6 and date range.
 For this purpose, my output looks like the following:
 
 `finalset.loc[finalset.cik==772263, ["cik", "comnam", "cusip6", "strdate_subset", "enddate_subset", "strdate", "enddate"]]`
 
 ```
-"""
           cik                comnam  cusip6 strdate_subset enddate_subset    strdate    enddate
 24310  772263  BEEBAS CREATIONS INC  076590     1994-04-08     1994-06-10 1994-04-08 1995-11-03
 72845  772263           NITCHES INC  65476M     1998-02-10     2007-01-10 1996-11-20 2008-11-26
-"""
 ```
 
 The other files are not touched for now.
@@ -65,6 +63,8 @@ python post_proc.py 13G.csv 13D.csv
 ```
 
 If you do not care obtaining the original data, just download cik-cusip-maps.csv, it has the mapping without timestamp information, but should be good if you use it for merging databases. Please deal with duplications yourself.
+
+## Reason for not having a timestamp
 
 The reason why I do not provide timestamp is because there will be truncations due to timing of the filings. For example, when filings are filed in 2005 and 2007 for a link, I can only see the link in 2005 and 2007, but the link should be valid in 2006 too. One way to fix this is to interpolate the link to 2006. However, when filing ends in 2006, we do not know when should the link is valid to and how long after we should extrapolate, i.e. One could extrapolate to 2020 but we do not know the true date the link ends. This is arbitrary choice of the user, therefore I remove the timestamp for you to deal with yourself. For database merging purpose, this should be fine because two databases you are merging should have timestamp and it's rare for duplicated links to exist at some given time.
 
