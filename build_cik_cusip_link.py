@@ -264,9 +264,9 @@ if __name__=="__main__":
     #212_648
     extendset1.num10ks.fillna(0, inplace=True)
     
-    extendset2 = extendset1.loc[extendset1.groupby(["cik", "comnam"]).num10ks.idxmax()]
+    #extendset2 = extendset1.loc[extendset1.groupby(["cik", "comnam"]).num10ks.idxmax()]
     
-    finalset = extendset2.reset_index(drop=True)
+    finalset = extendset1.reset_index(drop=True)
     
     finalset.to_csv("cik_cusips.csv", index=False, sep="|")
     
