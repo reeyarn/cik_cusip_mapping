@@ -53,7 +53,7 @@ def _get_secondstamp():
     return now_ms
 
 def _check_if_need_sleep(_last_sec_download_time = 0):
-    REQUEST_BUDGET_MS = 116
+    REQUEST_BUDGET_MS = 200
     need_sleep_for_ms = 0
     _tmpfilename_last_sec_download_time = "/tmp/_tmpfilename_last_sec_download_time"
     if os.path.exists(_tmpfilename_last_sec_download_time):
@@ -90,15 +90,23 @@ def get_cusip(url):
         with open(file_path, 'rb') as f:
             raw = f.read()
         raw = gzip.decompress(raw)     
-        raw = raw.decode() 
+        try:
+            raw = raw.decode() 
+        except:
+            try:
+                raw = raw.decode('latin-1')    
+            except:
+                raw = bytes()
+        
         if not "SEC-DOCUMENT" in raw and not "SEC-HEADER" in raw and not "DOCUMENT" in raw:
             print(f"delete illegal file for {url}", raw[:200])
             os.unlink(file_path)
         else:   
-            print(f"Use existing file for {url}") 
+            #print(f"Use existing file for {url}") 
+            pass
         
     if not os.path.exists(file_path):
-        need_sleep_for_ms = 500
+        need_sleep_for_ms = 700
         _tmpfilename_last_sec_download_time = "/tmp/_tmpfilename_last_sec_download_time"
         while need_sleep_for_ms > 0:
             time.sleep(need_sleep_for_ms/1000)
@@ -119,7 +127,13 @@ def get_cusip(url):
         req_status = str(req.status_code)
         if req_status == "200":    
             txt = req.content
-            raw = txt.decode()
+            try:
+                raw = txt.decode()
+            except UnicodeDecodeError:
+                try:
+                    raw = txt.decode('latin-1')    
+                except:
+                    raw = bytes()
             data_gzipped = gzip.compress(txt) 		
             with open(file_path, "wb") as f:
                 f.write(data_gzipped)       
@@ -190,6 +204,7 @@ def get_cusip(url):
 
 
 
+
   
 
 if __name__=="__main__":  
@@ -205,7 +220,17 @@ if __name__=="__main__":
     subset = index.loc[(index.date ==index.strdate) | (index.date==index.enddate)].reset_index(drop=True)
     
     subset["cusip"] = subset.url.mapply(get_cusip)
+    subset["cusip6"] = subset["cusip"].str[:6]
     subset.to_csv("cik_cusips.csv", index=False, sep="|")
 
-
+    
+if False:
+    subset.loc[subset.cik==772263,["cik", "comnam", "cusip6"]]
+    """
+           cik                comnam  cusip6
+3787    772263  BEEBAS CREATIONS INC  076590
+3788    772263  BEEBAS CREATIONS INC  076590
+31022   772263           NITCHES INC  65476M
+103963  772263           NITCHES INC  65476M
+    """
   
