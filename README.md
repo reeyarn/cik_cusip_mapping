@@ -5,10 +5,16 @@ Forked from [leoliu0/cik-cusip-mapping](https://github.com/leoliu0/cik-cusip-map
 MIT License
 Reeyarn Li 2023
 
+This repository produces the link between cik and cusip using EDGAR 13D and 13G fillings, that is more robust than Compustat (due to backward filling of new cusip to old records). This is a low-budget remedy if one does not have access to WRDS SEC Analytics Suite's linking table. 
+
+*** If you just want the output linking table, please download `cik_cusips.csv.gz` (with timestamp)  or `cik-cusip-maps.csv` (without timestamp) ***
+
+
 
 ## Originally Stated Purpose by [leoliu0/cik-cusip-mapping](https://github.com/leoliu0/cik-cusip-mapping)
 
-*** If you just want the mapping, download cik-cusip-maps.csv ***
+### Original output
+*** If you just want the mapping, download `cik-cusip-maps.csv` (without timestamp) ***
 
 This repository produces the link between cik and cusip using EDGAR 13D and 13G fillings, that is more robust than Compustat (due to backward filling of new cusip to old records). It is a competitor to WRDS SEC platform while this one is free.
 
